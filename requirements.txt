@@ -1,0 +1,17 @@
+astor==0.8.1
+certifi==2022.12.7
+charset-normalizer==3.0.1
+decorator==5.1.1
+idna==3.4
+numpy==1.24.2
+opt-einsum==3.3.0
+paddle-bfloat==0.1.7
+paddlepaddle-gpu==2.4.1.post117
+Pillow==9.4.0
+pip==22.3.1
+protobuf==3.20.0
+requests==2.28.2
+setuptools==65.6.3
+six==1.16.0
+urllib3==1.26.14
+wheel==0.38.4
