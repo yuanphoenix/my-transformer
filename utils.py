@@ -5,17 +5,20 @@ from paddle import Tensor
 
 
 def convert():
-    chinese = ['你好吗', "我爱你", "中国是个伟大的国家"]
+    chinese = ['你好吗', "我爱你", "中国是一个伟大的国家"]
     english = ['how are you', 'i love you', 'china is a great country']
-    word_list = []
+    cc = []
     for item in chinese:
         for word in item:
             # 中文一个字一个字的加入list
-            word_list.append(word)
+            cc.append(word)
     for item in english:
-        word_list.extend(item.split())
-    word_list = list(set(word_list))
+        cc.extend(item.split())
+
+    word_list = list(set(cc))
+    word_list.sort(key=cc.index)
     word_list.insert(0, 0)
+    word_list.append(-1)
     word2id = {item: index for index, item in enumerate(word_list)}
     id2word = {index: item for index, item in enumerate(word_list)}
     return word2id, id2word
@@ -54,7 +57,7 @@ def convert_list_to_tensor(str_list: List[str], endlish=True) -> (Tensor, Tensor
         padding_mask.extend([1] * len(ids))
         ids.append(0)  # 结束的标志
         pad_nums = max_length - len(ids)
-        ids.extend([pad] * pad_nums)
+        ids.extend([word2id[pad]] * pad_nums)
         padding_mask.extend([0] * (len(ids) - len(padding_mask) - 1))
         result.append(ids)
         count = padding_mask.count(1)
@@ -69,5 +72,4 @@ def convert_list_to_tensor(str_list: List[str], endlish=True) -> (Tensor, Tensor
 
 
 if __name__ == '__main__':
-    result, padding_metric, mask_seq_seq, = convert_list_to_tensor(["i love you", "china i"])
-    print(result)
+    print(convert())

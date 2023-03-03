@@ -12,7 +12,7 @@ from Encoder import Encoder
 class EncoderDecoder(nn.Layer):
     def __init__(self, vocab_size: int, d_model: int = 512):
         super(EncoderDecoder, self).__init__()
-        self.layers_nums = 6
+        self.layers_nums = 3
         self.embedding = nn.Sequential(
             TransformerEmbedding(vocab_size),
             PositionalEncoding()
@@ -21,7 +21,7 @@ class EncoderDecoder(nn.Layer):
         self.decoder = Decoder(self.layers_nums)
         self.linear = nn.Linear(d_model, vocab_size)
         self.soft_max = nn.Softmax()
-        self.loss_fct = nn.CrossEntropyLoss()
+        self.loss_fct = nn.CrossEntropyLoss(ignore_index=-1)
 
     def forward(self, x, label, true_label: Optional[Tensor] = None, src_mask=None, tgt_mask=None):
         input_embedding = self.embedding(x)
