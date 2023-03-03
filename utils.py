@@ -21,14 +21,15 @@ def convert():
     return word2id, id2word
 
 
-def convert_list_to_tensor(str_list: List[str]) -> (Tensor, Tensor):
+def convert_list_to_tensor(str_list: List[str], endlish=True) -> (Tensor, Tensor):
     """
 
     :param str_list:
     :return: 原始的id矩阵；处理好了的掩码矩阵
     """
+    batch = len(str_list)
     max_length = 0
-    if str_list[0][0].isalpha():
+    if endlish:
         for item in str_list:
             ll = item.split(' ')
             max_length = len(ll) if len(ll) > max_length else max_length
@@ -43,8 +44,7 @@ def convert_list_to_tensor(str_list: List[str]) -> (Tensor, Tensor):
     for sentence in str_list:
         ids = [0, ]  # 开始的标志
         padding_mask = []
-        if sentence[0].isalpha():
-            # 英文
+        if endlish:
             word_list = sentence.split(' ')
             for word in word_list:
                 ids.append(word2id[word])
@@ -58,11 +58,16 @@ def convert_list_to_tensor(str_list: List[str]) -> (Tensor, Tensor):
         padding_mask.extend([0] * (len(ids) - len(padding_mask) - 1))
         result.append(ids)
         count = padding_mask.count(1)
-        mask_seq_seq.append([[padding_mask] * count])
+        metric_mask = paddle.zeros([len(padding_mask), len(padding_mask)])
+        metric_mask[:count, :count] = 1
+        mask_seq_seq.append(metric_mask)
         padding_metric.append(padding_mask)
 
-    return paddle.to_tensor(result), paddle.to_tensor(padding_metric), paddle.to_tensor(mask_seq_seq)
+    return paddle.to_tensor(result).reshape([batch, -1]), \
+        paddle.to_tensor(padding_metric).reshape([batch, -1]), \
+        paddle.to_tensor(mask_seq_seq).reshape([batch, len(padding_mask), -1]),
+
 
 if __name__ == '__main__':
     result, padding_metric, mask_seq_seq, = convert_list_to_tensor(["i love you", "china i"])
-    result.reshape(2,-1)
+    print(result)

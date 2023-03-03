@@ -3,14 +3,11 @@ import math
 from typing import Optional
 
 import paddle
-
 import paddle.nn as nn
 from paddle import Tensor
 
 
 class MultiHeadAttention(nn.Layer):
-    nn.Transformer
-
     def __init__(self, d_model: int = 512, head: int = 8):
         super().__init__()
         self.head = head
@@ -18,8 +15,8 @@ class MultiHeadAttention(nn.Layer):
         self.linear_output = nn.Linear(d_model * head, d_model)
 
     def forward(self, x, encoder_output: Tensor = None, mask=False,
-                src_mask=Optional[Tensor],
-                tgt_mask=Optional[Tensor]):
+                src_mask: Optional[Tensor] = None,
+                tgt_mask: Optional[Tensor] = None):
 
         """
         完全按照论文的思路来实现
@@ -46,8 +43,10 @@ class MultiHeadAttention(nn.Layer):
         return self.linear_output(x)
 
 
-def attention(query: Tensor, key: Tensor, value: Tensor, head: int, src_mask: Optional[Tensor],
-              tgt_mask: Optional[Tensor], mask=False) -> Tensor:
+def attention(query: Tensor, key: Tensor, value: Tensor, head: int,
+              src_mask=None,
+              tgt_mask=None,
+              mask=False) -> Tensor:
     """
     计算 Attention 的函数
     :param src_mask:
@@ -70,18 +69,20 @@ def attention(query: Tensor, key: Tensor, value: Tensor, head: int, src_mask: Op
         batch_size = scale.shape[0]
         result = []
         for index in range(batch_size):
-            s = paddle.count_nonzero(src_mask)
-            lie = s[index][0]
-            row = paddle.count_nonzero(tgt_mask)[index][0]
+            s = paddle.count_nonzero(src_mask[index])
+            lie = int(math.sqrt(s.item()))
+            p = paddle.count_nonzero(tgt_mask[index])
+            row = int(math.sqrt(p.item()))
             temp = paddle.zeros([q_sen_length, k_sen_length])
             temp[:row, :lie] = 1
             result.append(temp)
         result_mask = paddle.to_tensor(result)
-        scale = paddle.where(result_mask, scale, -1e9)
+        scale = masked_fill(scale, result_mask, -1e9)
+
     elif src_mask is not None:
-        scale = paddle.where(src_mask, scale, -1e9)
+        scale = masked_fill(scale, src_mask, -1e9)
     elif tgt_mask is not None:
-        scale = paddle.where(tgt_mask, scale, -1e9)
+        scale = masked_fill(scale, tgt_mask, -1e9)
 
     if mask:
         # 这里有一个下三角，只有Docoder才会进入，但是我们这里的scale是一个[batch,tgt_length,tgt_length]
@@ -92,7 +93,7 @@ def attention(query: Tensor, key: Tensor, value: Tensor, head: int, src_mask: Op
         if tgt_mask is not None:
             assert tgt_mask.shape == scale.shape
             # tgt_mask也是一个[batch，tgt_length,tgt_length]的矩阵
-            scale = paddle.where(tgt_mask, scale, -1e9)
+            scale = masked_fill(scale, tgt_mask, -1e9)
 
     return paddle.matmul(nn.functional.softmax(scale), value)
 
@@ -105,5 +106,6 @@ def masked_fill(x, mask, value):
     :param value:
     :return:
     """
+    mask = paddle.cast(mask, 'bool')
     y = paddle.full(x.shape, value, x.dtype)
     return paddle.where(mask, x, y)

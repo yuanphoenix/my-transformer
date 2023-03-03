@@ -10,7 +10,7 @@ class Encoder(nn.Layer):
         super(Encoder, self).__init__()
         self.layers = nn.LayerList([copy.deepcopy(EncoderLayer()) for _ in range(num_layers)])
 
-    def forward(self, x):
+    def forward(self, x,src_mask:None):
         for encoder_layer in self.layers:
-            x = encoder_layer(x)
+            x = encoder_layer(x,src_mask)
         return x

@@ -1,8 +1,8 @@
 import paddle.nn as nn
 
 from FeedForward import FeedForward
-from MultiHeadAttention import MultiHeadAttention
 from LayerNorm import LayerNorm
+from MultiHeadAttention import MultiHeadAttention
 
 
 class EncoderLayer(nn.Layer):
@@ -15,13 +15,13 @@ class EncoderLayer(nn.Layer):
         self.feed_forward = FeedForward()
         self.norm = LayerNorm()
 
-    def forward(self, x):
+    def forward(self, x, src_mask=None):
         """
         :param x: shape [batch,max_length,d_model]
         :return:
         """
 
-        y = self.multi_head(x)
+        y = self.multi_head(x, src_mask=src_mask)
         y = x + self.norm(y)
         z = self.feed_forward(y)
         z = y + self.norm(z)

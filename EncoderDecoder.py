@@ -23,11 +23,11 @@ class EncoderDecoder(nn.Layer):
         self.soft_max = nn.Softmax()
         self.loss_fct = nn.CrossEntropyLoss()
 
-    def forward(self, x, label, true_label: Optional[Tensor] = None):
+    def forward(self, x, label, true_label: Optional[Tensor] = None, src_mask=None, tgt_mask=None):
         input_embedding = self.embedding(x)
         label_embedding = self.embedding(label)
-        encoder_output = self.encoder(input_embedding)
-        decoder_output = self.decoder(label_embedding, encoder_output)
+        encoder_output = self.encoder(input_embedding, src_mask)
+        decoder_output = self.decoder(label_embedding, encoder_output, src_mask, tgt_mask)
         logits = self.linear(decoder_output)
         res_dict = {}
         if true_label is not None:

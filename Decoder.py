@@ -11,10 +11,10 @@ class Decoder(nn.Layer):
         super(Decoder, self).__init__()
         self.decoder_layers = nn.LayerList([copy.deepcopy(DecoderLayer()) for _ in range(num_layers)])
 
-    def forward(self, x, encoder_output):
+    def forward(self, x, encoder_output, src_mask, tgt_mask):
         """
         :param x: shape [batch,seq_legth,d_model]
         """
         for layer in self.decoder_layers:
-            x = layer(x, encoder_output)
+            x = layer(x, encoder_output, src_mask, tgt_mask)
         return x
