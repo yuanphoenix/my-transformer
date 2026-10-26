@@ -11,6 +11,12 @@ __pycache__/
 venv/
 env/
 
+# 模型权重 / 训练产物
+*.pdparams
+*.pdopt
+*.pdmodel
+transformer.pdparams
+
 # 系统
 .DS_Store
 Thumbs.db
