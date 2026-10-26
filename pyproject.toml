@@ -5,7 +5,7 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
-    "paddlepaddle-gpu>=2.6.2",
+    "paddlepaddle==2.6.2",
 ]
 
 [project.scripts]
