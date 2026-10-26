@@ -9,7 +9,6 @@ class TransformerEmbedding(nn.Layer):
         super(TransformerEmbedding, self).__init__()
         self.d_model = d_model
         self.embedding = nn.Embedding(vocab_size, d_model)
-        self.positional_embedding = PositionalEncoding()
 
     def forward(self, x: Tensor):
         """
@@ -18,7 +17,7 @@ class TransformerEmbedding(nn.Layer):
         又因为Tensor是无法输入字符串的，所以只能输入字符串对应的数字。或许这就是词表存在的意义。
         :return:
         """
-        return self.embedding(x) + math.sqrt(self.d_model)
+        return self.embedding(x) * math.sqrt(self.d_model)
 
 
 class PositionalEncoding(nn.Layer):
@@ -30,9 +29,9 @@ class PositionalEncoding(nn.Layer):
         对于在一句话中的一个字对应的512个维度中，位于偶数位置的使用sin函数，位于基数位置的使用cos函数
         """
         super(PositionalEncoding, self).__init__()
-        self.pe = paddle.tensor.zeros([max_seq_length, d_model])
-        position = paddle.tensor.arange(0, max_seq_length).unsqueeze(1)
-        two_i = paddle.tensor.arange(0, d_model, 2)
+        self.pe = paddle.tensor.zeros([max_seq_length, d_model])  #比如是，【5，512】
+        position = paddle.tensor.arange(0, max_seq_length).unsqueeze(1) #那就是【5，1】
+        two_i = paddle.tensor.arange(0, d_model, 2) #【0，2,4......】
 
         temp = paddle.exp(-1 * two_i * math.log(10000.0) / d_model)
         aab = position * temp
@@ -50,4 +49,4 @@ class PositionalEncoding(nn.Layer):
 
         """
         self.pe.stop_gradient = True
-        return x + self.pe[:, x.shape[1]]
+        return x + self.pe[:, :x.shape[1],:]

@@ -7,6 +7,7 @@ from paddle import Tensor
 from Decoder import Decoder
 from Embedding import TransformerEmbedding, PositionalEncoding
 from Encoder import Encoder
+from utils import PAD_ID
 
 
 class EncoderDecoder(nn.Layer):
@@ -21,7 +22,8 @@ class EncoderDecoder(nn.Layer):
         self.decoder = Decoder(self.layers_nums)
         self.linear = nn.Linear(d_model, vocab_size)
         self.soft_max = nn.Softmax()
-        self.loss_fct = nn.CrossEntropyLoss(ignore_index=-1)
+        # ignore_index 必须等于 utils 里实际填进 label 的 PAD_ID, 两处一致才能跳过 padding
+        self.loss_fct = nn.CrossEntropyLoss(ignore_index=PAD_ID)
 
     def forward(self, x, label, true_label: Optional[Tensor] = None, src_mask=None, tgt_mask=None):
         input_embedding = self.embedding(x)

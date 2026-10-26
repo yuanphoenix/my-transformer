@@ -13,15 +13,23 @@ def convert():
             # 中文一个字一个字的加入list
             cc.append(word)
     for item in english:
+        # 英文一个词一个词的加入。['how', 'are', 'you', 'i', 'love', 'you', 'china', 'is', 'a', 'great', 'country']
         cc.extend(item.split())
 
     word_list = list(set(cc))
     word_list.sort(key=cc.index)
     word_list.insert(0, 0)
     word_list.append(-1)
+
     word2id = {item: index for index, item in enumerate(word_list)}
     id2word = {index: item for index, item in enumerate(word_list)}
     return word2id, id2word
+
+
+# 词表把-1放在最后当占位符, 没有任何真实词映射到它, 它的下标就是空闲的pad槽位。
+# 输入(ids)和label都用PAD_ID填充; 输入侧它是合法id(能进embedding), label侧由
+# EncoderDecoder里的ignore_index=PAD_ID跳过。两处必须一致。
+PAD_ID = convert()[0][-1]
 
 
 def convert_list_to_tensor(str_list: List[str], endlish=True) -> (Tensor, Tensor):
@@ -42,7 +50,7 @@ def convert_list_to_tensor(str_list: List[str], endlish=True) -> (Tensor, Tensor
     word2id, id2word, = convert()
     result = []
     padding_metric = []
-    pad = -1
+    pad = PAD_ID
     mask_seq_seq = []
     for sentence in str_list:
         ids = [0, ]  # 开始的标志
@@ -57,7 +65,7 @@ def convert_list_to_tensor(str_list: List[str], endlish=True) -> (Tensor, Tensor
         padding_mask.extend([1] * len(ids))
         ids.append(0)  # 结束的标志
         pad_nums = max_length - len(ids)
-        ids.extend([word2id[pad]] * pad_nums)
+        ids.extend([pad] * pad_nums)
         padding_mask.extend([0] * (len(ids) - len(padding_mask) - 1))
         result.append(ids)
         count = padding_mask.count(1)
